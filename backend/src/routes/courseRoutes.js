@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import { createCourse, deleteCourse, getCourse, getCourses, getMyCourses, updateCourse } from '../controllers/courseController.js';
+import { createModule } from '../controllers/moduleController.js';
+import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
+const router = Router();
+router.use(requireAuth);
+router.get('/', getCourses);
+router.get('/mine', requireRole('faculty'), getMyCourses);
+router.get('/:id', getCourse);
+router.post('/', requireRole('faculty'), createCourse);
+router.put('/:id', requireRole('faculty'), updateCourse);
+router.delete('/:id', requireRole('faculty'), deleteCourse);
+router.post('/:courseId/modules', requireRole('faculty'), createModule);
+export default router;

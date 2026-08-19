@@ -1,0 +1,11 @@
+import Course from '../models/Course.js';
+import Module from '../models/Module.js';
+import Lecture from '../models/Lecture.js';
+import Progress from '../models/Progress.js';
+import { invalidId, isValidId } from '../utils/validation.js';
+
+const ownedCourse = async (id, user, res) => { if (!isValidId(id)) { invalidId(res, 'course'); return null; } const course = await Course.findById(id); if (!course) { res.status(404).json({ message: 'Course not found.' }); return null; } if (course.faculty.toString() !== user.toString()) { res.status(403).json({ message: 'You can only manage your own courses.' }); return null; } return course; };
+const ownedModule = async (id, user, res) => { if (!isValidId(id)) { invalidId(res, 'module'); return null; } const module = await Module.findById(id); if (!module) { res.status(404).json({ message: 'Module not found.' }); return null; } return (await ownedCourse(module.course, user, res)) ? module : null; };
+export const createModule = async (req, res, next) => { try { const course = await ownedCourse(req.params.courseId, req.user._id, res); if (!course) return; const { title, description, order } = req.body; if (!title) return res.status(400).json({ message: 'Module title is required.' }); const module = await Module.create({ title, description, order: Number(order) || 0, course: course._id }); res.status(201).json({ module }); } catch (error) { next(error); } };
+export const updateModule = async (req, res, next) => { try { const module = await ownedModule(req.params.id, req.user._id, res); if (!module) return; const { title, description, order } = req.body; if (!title) return res.status(400).json({ message: 'Module title is required.' }); Object.assign(module, { title, description: description || '', order: Number(order) || 0 }); await module.save(); res.json({ module }); } catch (error) { next(error); } };
+export const deleteModule = async (req, res, next) => { try { const module = await ownedModule(req.params.id, req.user._id, res); if (!module) return; const lectures = await Lecture.find({ module: module._id }).select('_id'); await Progress.deleteMany({ lecture: { $in: lectures.map((item) => item._id) } }); await Lecture.deleteMany({ module: module._id }); await module.deleteOne(); res.json({ message: 'Module deleted.' }); } catch (error) { next(error); } };

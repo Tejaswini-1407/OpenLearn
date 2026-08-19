@@ -1,0 +1,9 @@
+{
+  "name": "online-learning-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend"
+  },
+  "description": "MERN Online Learning Platform starter project"
+}

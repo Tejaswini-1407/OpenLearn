@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { deleteModule, updateModule } from '../controllers/moduleController.js';
+import { createLecture } from '../controllers/lectureController.js';
+import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
+const router = Router();
+router.use(requireAuth, requireRole('faculty'));
+router.put('/:id', updateModule);
+router.delete('/:id', deleteModule);
+router.post('/:moduleId/lectures', createLecture);
+export default router;
